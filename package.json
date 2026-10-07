@@ -3,6 +3,15 @@
   "version": "0.1.0",
   "description": "Beautiful QR codes that are provably scannable. Pure SVG, zero dependencies, runs in browser, Node, edge and RSC.",
   "license": "MIT",
+  "author": "Vaibhav Shelke",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vaibhav-shelke1/beautiful-qr.git"
+  },
+  "homepage": "https://github.com/Vaibhav-shelke1/beautiful-qr#readme",
+  "bugs": {
+    "url": "https://github.com/Vaibhav-shelke1/beautiful-qr/issues"
+  },
   "type": "module",
   "sideEffects": false,
   "files": [
