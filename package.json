@@ -1,6 +1,6 @@
 {
   "name": "beautiful-qr",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Beautiful QR codes that are decoded and repaired before you get them. Zero dependencies, runs in the browser, Node, edge runtimes and RSC.",
   "license": "MIT",
   "author": "Vaibhav Shelke",
