@@ -7,7 +7,7 @@ import type { LogoAsset, PreparedLogo } from "./logo.js";
 import { encodePng } from "./png.js";
 import { rasterize } from "./raster.js";
 import type { Raster } from "./raster.js";
-import { renderSvg } from "./svg.js";
+import { hash, renderSvg } from "./svg.js";
 import { verify } from "./verify.js";
 import type { Decoder, VerifyReport } from "./verify.js";
 import { resolveOptions } from "./options.js";
@@ -134,6 +134,13 @@ function paint(current: Resolved, build: Build, size: number): Raster {
   return raster;
 }
 
+// Element ids end up in the document, not just the file, so two codes inlined
+// on one page must not share them. Deriving the prefix from the payload and
+// style keeps clip paths and gradients separate per code.
+function idPrefixFor(current: Resolved): string {
+  return `bq${hash(current.data + current.dotStyle + current.size + JSON.stringify(current.logo?.size ?? 0))}`;
+}
+
 function result(
   current: Resolved,
   build: Build,
@@ -141,6 +148,8 @@ function result(
   report: VerifyReport | null,
   repairs: Repair[],
 ): QRResult {
+  const idPrefix = idPrefixFor(current);
+
   const toSVG = () =>
     renderSvg(build.geometry, {
       size: current.size,
@@ -151,7 +160,8 @@ function result(
         "corner-dot": current.cornerDotColor,
       },
       background: current.background,
-      ...(build.logo ? { embed: logoSvg(build.logo, current.margin, "bq") } : {}),
+      idPrefix,
+      ...(build.logo ? { embed: logoSvg(build.logo, current.margin, idPrefix) } : {}),
     });
 
   const toPNG = async () => {

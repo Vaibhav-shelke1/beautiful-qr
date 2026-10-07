@@ -287,3 +287,46 @@ describe("decoding the real exported artifact", () => {
     expect(decodeQR({ width, height, data: pixels } as ImageData)).toBe(PAYLOAD);
   });
 });
+
+describe("inlining several codes in one document", () => {
+  const swatch2 = (r: number): Bitmap => {
+    const size = 32;
+    const data = new Uint8ClampedArray(size * size * 4);
+    for (let i = 0; i < size * size; i++) {
+      data[i * 4] = r;
+      data[i * 4 + 3] = 255;
+    }
+    return { width: size, height: size, data };
+  };
+
+  const idsIn = (svg: string, kind: string) =>
+    [...svg.matchAll(new RegExp(`${kind} id="([^"]+)"`, "g"))].map((m) => m[1]);
+
+  it("gives two logo codes different clip path ids", async () => {
+    const a = await generate({ data: "https://a.example", logo: { src: swatch2(220), shape: "circle" } });
+    const b = await generate({ data: "https://b.example", logo: { src: swatch2(37), shape: "circle" } });
+
+    const idA = idsIn(a.toSVG(), "clipPath");
+    const idB = idsIn(b.toSVG(), "clipPath");
+    expect(idA).toHaveLength(1);
+    expect(idB).toHaveLength(1);
+    expect(idA[0]).not.toBe(idB[0]);
+  });
+
+  it("gives two gradient codes different gradient ids", async () => {
+    const a = await generate({
+      data: "https://a.example",
+      dots: { color: { type: "linear", colors: ["#0b1020", "#1e3a8a"] } },
+    });
+    const b = await generate({
+      data: "https://b.example",
+      dots: { color: { type: "linear", colors: ["#14532D", "#166534"] } },
+    });
+    expect(idsIn(a.toSVG(), "linearGradient")[0]).not.toBe(idsIn(b.toSVG(), "linearGradient")[0]);
+  });
+
+  it("stays stable across repeated renders of the same code", async () => {
+    const a = await generate({ data: "https://a.example", logo: { src: swatch2(220), shape: "circle" } });
+    expect(a.toSVG()).toBe(a.toSVG());
+  });
+});

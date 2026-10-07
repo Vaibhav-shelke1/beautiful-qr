@@ -113,7 +113,7 @@ function gradientDef(g: Gradient, id: string): string {
   );
 }
 
-function hash(input: string): string {
+export function hash(input: string): string {
   let h = 0x811c9dc5;
   for (let i = 0; i < input.length; i++) {
     h ^= input.charCodeAt(i);
