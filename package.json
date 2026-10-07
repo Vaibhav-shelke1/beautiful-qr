@@ -1,0 +1,54 @@
+{
+  "name": "beautiful-qr",
+  "version": "0.1.0",
+  "description": "Beautiful QR codes that are provably scannable. Pure SVG, zero dependencies, runs in browser, Node, edge and RSC.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "NOTICE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run typecheck && npm run test && npm run build"
+  },
+  "keywords": [
+    "qr",
+    "qrcode",
+    "qr-code",
+    "styled-qr",
+    "qr-generator",
+    "svg",
+    "png",
+    "logo",
+    "gradient",
+    "scannable",
+    "edge",
+    "rsc"
+  ],
+  "devDependencies": {
+    "@types/node": "^24.9.2",
+    "qr": "^0.7.2",
+    "tsup": "^8.5.0",
+    "typescript": "~5.7.3",
+    "vitest": "^3.2.4"
+  }
+}
