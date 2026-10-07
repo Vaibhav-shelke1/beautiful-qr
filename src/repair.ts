@@ -26,11 +26,14 @@ const STURDIER_DOTS: Partial<Record<DotStyle, DotStyle>> = {
   classy: "square",
 };
 
+// Contrast comes first because it is the one failure nothing else can
+// compensate for: with dots and background too close, no amount of error
+// correction or logo shrinking produces a readable code.
 export const STRATEGIES: Strategy[] = [
+  raiseContrast,
   raiseErrorCorrection,
   widenQuietZone,
   shrinkLogo,
-  raiseContrast,
   sturdierDots,
 ];
 
@@ -43,9 +46,8 @@ export function nextRepair(current: Resolved): Attempt | null {
 }
 
 function raiseErrorCorrection(current: Resolved): Attempt | null {
-  const index = ECC_ORDER.indexOf(current.errorCorrection);
-  if (index < 0 || index === ECC_ORDER.length - 1) return null;
-  const to = ECC_ORDER[index + 1]!;
+  const to = ECC_ORDER[ECC_ORDER.length - 1]!;
+  if (current.errorCorrection === to) return null;
 
   return {
     options: { ...current, errorCorrection: to },
@@ -53,7 +55,7 @@ function raiseErrorCorrection(current: Resolved): Attempt | null {
       field: "qr.errorCorrection",
       from: current.errorCorrection,
       to,
-      why: "more of the code can be recovered at a higher correction level",
+      why: "a failing code has nothing to gain from a lower correction level",
     },
   };
 }
@@ -76,7 +78,7 @@ function shrinkLogo(current: Resolved): Attempt | null {
   if (!current.logo) return null;
   const from = current.logo.size ?? 0.2;
   if (from <= MIN_LOGO_SIZE) return null;
-  const to = Math.max(MIN_LOGO_SIZE, round(from * 0.85));
+  const to = Math.max(MIN_LOGO_SIZE, round(from * 0.75));
 
   return {
     options: { ...current, logo: { ...current.logo, size: to } },

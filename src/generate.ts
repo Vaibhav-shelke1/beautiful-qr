@@ -15,10 +15,23 @@ import type { PresetOptions, QROptions, Resolved } from "./options.js";
 import { nextRepair } from "./repair.js";
 import type { Repair } from "./repair.js";
 import { presets } from "./presets.js";
-import type { QRMatrix } from "./types.js";
+import type { DotStyle, QRMatrix } from "./types.js";
 
 const VERIFY_PX_PER_MODULE = 6;
 const MAX_REPAIRS = 8;
+
+// Ink spreads on paper and camera optics soften edges, both of which cost a
+// rounded module more of its area than a square one. Verification measures a
+// clean buffer and cannot see either effect, so these come from published print
+// guidance and are applied to the size estimate rather than inferred from it.
+const PRINT_PENALTY: Record<DotStyle, number> = {
+  square: 1,
+  classy: 1.05,
+  "classy-rounded": 1.1,
+  rounded: 1.1,
+  "extra-rounded": 1.2,
+  dot: 1.3,
+};
 
 export interface QRResult {
   verified: boolean;
@@ -95,6 +108,7 @@ function check(current: Resolved, build: Build): VerifyReport {
     modules: build.matrix.size,
     margin: current.margin,
     ladder: current.verify.ladder,
+    printPenalty: PRINT_PENALTY[current.dotStyle],
     decode,
   });
 }

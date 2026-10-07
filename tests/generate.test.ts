@@ -48,6 +48,14 @@ describe("generate", () => {
     expect(qr.report!.estimatedMinPrintSize!.cm).toBeGreaterThan(0);
   });
 
+  it("asks for a larger print for round dots than for square ones", async () => {
+    const square = await generate({ data: PAYLOAD, dots: { style: "square" } });
+    const round = await generate({ data: PAYLOAD, dots: { style: "dot" } });
+    expect(round.report!.estimatedMinPrintSize!.cm).toBeGreaterThan(
+      square.report!.estimatedMinPrintSize!.cm,
+    );
+  });
+
   it("skips verification when asked", async () => {
     const qr = await generate({ data: PAYLOAD, verify: false });
     expect(qr.report).toBeNull();
@@ -86,10 +94,16 @@ describe("repair", () => {
     expect(qr.repairs.some((r) => r.field === "dots.color")).toBe(true);
   });
 
-  it("widens a quiet zone that is too tight", async () => {
-    const qr = await generate({ data: PAYLOAD, margin: 0, dots: { color: "#DDDDDD" }, background: { color: "#E5E5E5" } });
+  it("fixes contrast before anything else, since nothing else can compensate", async () => {
+    const qr = await generate({
+      data: PAYLOAD,
+      margin: 0,
+      dots: { color: "#DDDDDD" },
+      background: { color: "#E5E5E5" },
+    });
+
     expect(qr.verified).toBe(true);
-    expect(qr.options.margin).toBe(4);
+    expect(qr.repairs[0]!.field).toBe("dots.color");
   });
 
   it("leaves a healthy code completely untouched", async () => {

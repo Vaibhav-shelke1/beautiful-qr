@@ -15,6 +15,16 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js",
+      "require": "./dist/react.cjs"
+    },
+    "./compat": {
+      "types": "./dist/compat.d.ts",
+      "import": "./dist/compat.js",
+      "require": "./dist/compat.cjs"
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.cjs",
@@ -46,9 +56,21 @@
   ],
   "devDependencies": {
     "@types/node": "^24.9.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "qr": "^0.7.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "tsup": "^8.5.0",
     "typescript": "~5.7.3",
     "vitest": "^3.2.4"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
   }
 }

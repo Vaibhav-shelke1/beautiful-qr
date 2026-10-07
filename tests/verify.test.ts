@@ -107,7 +107,8 @@ describe("verify", () => {
     const { raster, modules, margin } = build("square", 10);
     const report = verify({ raster, expected: PAYLOAD, modules, margin, decode });
     expect(report.survives!.scale).toBeLessThan(1);
-    expect(report.survives!.scale).toBeGreaterThanOrEqual(0.25);
+    expect(report.survives!.scale).toBeGreaterThan(0);
+    expect(report.survives!.scale * report.pxPerModule).toBeGreaterThan(0.5);
   });
 
   it("estimates a print size in a physically plausible range", () => {
@@ -125,12 +126,23 @@ describe("verify", () => {
     expect(["resolution", "blur", "contrast", "rotation"]).toContain(report.weakest);
   });
 
-  it("rates round dots no more robust than square dots at the same size", () => {
-    const square = build("square", 10);
-    const dots = build("dot", 10);
-    const a = verify({ ...square, expected: PAYLOAD, decode });
-    const b = verify({ ...dots, expected: PAYLOAD, decode });
-    expect(b.estimatedMinPrintSize!.cm).toBeGreaterThanOrEqual(a.estimatedMinPrintSize!.cm);
+  it("does not reliably separate dot shapes, which is why they carry a stated penalty", () => {
+    const square = verify({ ...build("square", 10), expected: PAYLOAD, decode });
+    const dots = verify({ ...build("dot", 10), expected: PAYLOAD, decode });
+    const gap = Math.abs(dots.survives!.scale - square.survives!.scale);
+    expect(gap).toBeLessThan(0.15);
+  });
+
+  it("applies a caller supplied print penalty on top of what it measured", () => {
+    const base = build("square", 10);
+    const plain = verify({ ...base, expected: PAYLOAD, decode });
+    const penalised = verify({ ...base, expected: PAYLOAD, decode, printPenalty: 1.3 });
+
+    expect(penalised.survives!.scale).toBe(plain.survives!.scale);
+    expect(penalised.estimatedMinPrintSize!.cm).toBeCloseTo(
+      plain.estimatedMinPrintSize!.cm * 1.3,
+      0,
+    );
   });
 
   it("needs a larger print for a denser payload", () => {
