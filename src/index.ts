@@ -34,3 +34,14 @@ export type {
 } from "./verify.js";
 export { blur, downscale, reduceContrast, rotate } from "./degrade.js";
 export { encodePng } from "./png.js";
+export {
+  prepareLogo,
+  placeLogo,
+  occlusionMask,
+  coverageOf,
+  logoSvg,
+  compositeLogo,
+} from "./logo.js";
+export type { LogoOptions, LogoShape, Placement, PreparedLogo } from "./logo.js";
+export { loadImage, decodePng, isBitmap, readBytes } from "./image.js";
+export type { Bitmap, ImageSource } from "./image.js";
