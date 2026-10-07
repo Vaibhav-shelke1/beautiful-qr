@@ -75,16 +75,27 @@ export function coverageOf(placement: Placement, modules: number): number {
   return hidden / (modules * modules);
 }
 
-export async function prepareLogo(options: LogoOptions, modules: number): Promise<PreparedLogo> {
-  const placement = placeLogo(options, modules);
-  const bitmap = await loadImage(options.src);
+export interface LogoAsset {
+  bitmap: Bitmap;
+  dataUri: string;
+}
 
-  return {
-    bitmap,
-    dataUri: await toDataUri(options.src, bitmap),
-    placement,
-    coverage: coverageOf(placement, modules),
-  };
+export async function loadLogoAsset(src: ImageSource): Promise<LogoAsset> {
+  const bitmap = await loadImage(src);
+  return { bitmap, dataUri: await toDataUri(src, bitmap) };
+}
+
+export function attachLogo(
+  asset: LogoAsset,
+  options: LogoOptions,
+  modules: number,
+): PreparedLogo {
+  const placement = placeLogo(options, modules);
+  return { ...asset, placement, coverage: coverageOf(placement, modules) };
+}
+
+export async function prepareLogo(options: LogoOptions, modules: number): Promise<PreparedLogo> {
+  return attachLogo(await loadLogoAsset(options.src), options, modules);
 }
 
 async function toDataUri(source: ImageSource, bitmap: Bitmap): Promise<string> {
