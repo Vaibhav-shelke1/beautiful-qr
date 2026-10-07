@@ -10,18 +10,26 @@ const ECC_NAMES = {
 
 const FINDER_SPAN = 7;
 
+// qr always pads the raw grid by `border` modules and rejects a border of 0,
+// so the smallest pad is requested and stripped here. Quiet zone is the
+// renderer's job, not the encoder's.
+const ENCODER_BORDER = 1;
+
 export function buildMatrix(data: string, errorCorrection: ErrorCorrection): QRMatrix {
   if (data.length === 0) throw new Error("data must not be empty");
 
-  const grid = encodeQR(data, "raw", { ecc: ECC_NAMES[errorCorrection] });
-  const size = grid.length;
+  const grid = encodeQR(data, "raw", {
+    ecc: ECC_NAMES[errorCorrection],
+    border: ENCODER_BORDER,
+  });
+  const size = grid.length - ENCODER_BORDER * 2;
 
   return {
     size,
     errorCorrection,
     get(x, y) {
       if (x < 0 || y < 0 || x >= size || y >= size) return false;
-      return grid[y]![x]!;
+      return grid[y + ENCODER_BORDER]![x + ENCODER_BORDER]!;
     },
     isReserved(x, y) {
       return finderAt(x, y, size) !== null;

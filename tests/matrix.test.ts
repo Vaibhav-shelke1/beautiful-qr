@@ -43,6 +43,25 @@ describe("buildMatrix", () => {
     expect(large.size).toBeGreaterThan(small.size);
   });
 
+  it("strips the encoder's padding so module 0,0 is the finder corner", () => {
+    const m = buildMatrix("https://example.com", "H");
+    expect(m.get(0, 0)).toBe(true);
+    expect(m.get(6, 6)).toBe(true);
+    expect(m.get(7, 7)).toBe(false);
+    expect(m.get(m.size - 1, 0)).toBe(true);
+    expect(m.get(0, m.size - 1)).toBe(true);
+  });
+
+  it("renders the top-left finder as a ring with a solid core", () => {
+    const m = buildMatrix("https://example.com", "H");
+    const row = (y: number) =>
+      Array.from({ length: 7 }, (_, x) => (m.get(x, y) ? "#" : ".")).join("");
+    expect(row(0)).toBe("#######");
+    expect(row(1)).toBe("#.....#");
+    expect(row(2)).toBe("#.###.#");
+    expect(row(6)).toBe("#######");
+  });
+
   it("reads false outside bounds instead of throwing", () => {
     const m = buildMatrix("hello", "M");
     expect(m.get(-1, 0)).toBe(false);
