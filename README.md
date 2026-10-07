@@ -1,5 +1,10 @@
 # beautiful-qr
 
+[![npm](https://img.shields.io/npm/v/beautiful-qr.svg)](https://www.npmjs.com/package/beautiful-qr)
+[![ci](https://github.com/Vaibhav-shelke1/beautiful-qr/actions/workflows/ci.yml/badge.svg)](https://github.com/Vaibhav-shelke1/beautiful-qr/actions/workflows/ci.yml)
+[![install size](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/beautiful-qr)
+[![license](https://img.shields.io/npm/l/beautiful-qr.svg)](./LICENSE)
+
 Beautiful QR codes that are checked before you get them, and that render the same in the browser, Node, edge runtimes and React Server Components.
 
 Most styling libraries draw a QR code and hope. This one decodes its own output before handing it back, and if the design broke the code it repairs it and tells you what it changed.
