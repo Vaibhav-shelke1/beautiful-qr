@@ -1,6 +1,8 @@
 export { buildMatrix, finderAt, finderOrigins, FINDER_SPAN } from "./matrix.js";
 export type { FinderCorner, FinderHit } from "./matrix.js";
 export { buildGeometry, finderCells } from "./geometry.js";
+export { renderSvg, escapeAttr } from "./svg.js";
+export type { SvgOptions } from "./svg.js";
 export type {
   Geometry,
   GeometryOptions,
