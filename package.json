@@ -1,7 +1,7 @@
 {
   "name": "beautiful-qr",
   "version": "0.1.0",
-  "description": "Beautiful QR codes that are provably scannable. Pure SVG, zero dependencies, runs in browser, Node, edge and RSC.",
+  "description": "Beautiful QR codes that are decoded and repaired before you get them. Zero dependencies, runs in the browser, Node, edge runtimes and RSC.",
   "license": "MIT",
   "author": "Vaibhav Shelke",
   "repository": {
