@@ -9,7 +9,7 @@ permissions:
   id-token: write
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,6 +20,10 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
           cache: npm
+
+      # Node 22 bundles npm 10.9, which has no `npm stage` command. Staged
+      # publishing needs 11.15 or newer.
+      - run: npm install -g npm@11
 
       - run: npm ci
       - run: npm run typecheck
@@ -33,17 +37,26 @@ jobs:
         run: |
           version=$(node -p "require('./package.json').version")
           if npm view "beautiful-qr@$version" version >/dev/null 2>&1; then
-            echo "published=true" >> "$GITHUB_OUTPUT"
-            echo "beautiful-qr@$version is already on the registry, skipping publish"
+            echo "staged=false" >> "$GITHUB_OUTPUT"
+            echo "beautiful-qr@$version is already on the registry, skipping"
           else
-            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "staged=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # Trusted publishing: npm trusts this workflow directly and mints a
-      # short-lived credential, so there is no NPM_TOKEN to store or rotate.
-      # Configure it once under the package's settings on npmjs.com.
+      # Trusted publishing authenticates this workflow over OIDC, so there is
+      # no NPM_TOKEN to store or rotate.
       #
-      # npm stages this rather than making it live. Approve it under Staged
-      # Packages on npmjs.com, or with `npm stage approve <id>` on npm 11.15+.
-      - if: steps.check.outputs.published == 'false'
-        run: npm publish
+      # This stages only. The trusted publisher is deliberately not granted
+      # `npm publish`, so nothing reaches users until a maintainer approves it
+      # with 2FA under Staged Packages on npmjs.com, or via `npm stage approve`.
+      # A compromised workflow can therefore upload, but never ship.
+      - if: steps.check.outputs.staged == 'true'
+        run: npm stage publish
+
+      - if: steps.check.outputs.staged == 'true'
+        run: |
+          echo "### Staged, awaiting approval" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Approve it to go live:" >> "$GITHUB_STEP_SUMMARY"
+          echo "- https://www.npmjs.com/package/beautiful-qr/access" >> "$GITHUB_STEP_SUMMARY"
+          echo '- or `npm stage list` then `npm stage approve <id>`' >> "$GITHUB_STEP_SUMMARY"
