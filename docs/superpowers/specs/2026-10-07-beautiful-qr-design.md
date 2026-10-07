@@ -79,6 +79,31 @@ designs that are marginally out of tolerance, and users respond by disabling the
 check. Warn-only is ignored outright. Repair keeps the default path working, which
 is what makes the feature worth having.
 
+## What implementation changed
+
+Three decisions moved once the code could be measured rather than reasoned about.
+
+Repair order was wrong. Contrast was fourth, so a design at 1.5:1 exhausted its
+whole repair budget on error correction, quiet zone and logo size and still
+failed, because none of those compensate for modules a scanner cannot separate
+from the background. Contrast now runs first.
+
+The degradation ladder was quantisation noise on the resolution axis. Walking a
+fixed list made the result depend on where steps happened to fall, which made
+unrelated designs look different and identical designs look the same as the list
+changed. Scale is now bisected to a step-independent threshold for the same
+number of decodes.
+
+With that noise removed, dot shape turned out not to be reliably measurable
+here: a round module still reads dark at the centre a decoder samples, and
+apparent differences tracked the payload rather than the style. The real penalty
+is physical, so it is applied as a stated constant from print guidance and kept
+separable from measured robustness in the report.
+
+Low contrast also had to become a failure in its own right. Decoders threshold a
+clean buffer adaptively and read codes at 1.5:1 that a phone in poor light will
+not, so contrast is gated at 3:1 independently of whether the decode succeeded.
+
 ## Logo handling
 
 Verification models the logo as an opaque occlusion mask derived from its bounds.

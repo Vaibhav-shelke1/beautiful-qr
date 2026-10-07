@@ -12,7 +12,7 @@ import { verify } from "./verify.js";
 import type { Decoder, VerifyReport } from "./verify.js";
 import { resolveOptions } from "./options.js";
 import type { PresetOptions, QROptions, Resolved } from "./options.js";
-import { nextRepair } from "./repair.js";
+import { contrastOf, nextRepair } from "./repair.js";
 import type { Repair } from "./repair.js";
 import { presets } from "./presets.js";
 import type { DotStyle, QRMatrix } from "./types.js";
@@ -65,7 +65,7 @@ export async function generate(options: QROptions): Promise<QRResult> {
   if (current.verify.enabled) {
     report = check(current, build);
 
-    while (!report.decodes && current.verify.repair && repairs.length < MAX_REPAIRS) {
+    while (!passes(report) && current.verify.repair && repairs.length < MAX_REPAIRS) {
       const attempt = nextRepair(current);
       if (!attempt) break;
 
@@ -77,6 +77,10 @@ export async function generate(options: QROptions): Promise<QRResult> {
   }
 
   return result(current, build, asset, report, repairs);
+}
+
+function passes(report: VerifyReport): boolean {
+  return report.decodes && report.sufficientContrast;
 }
 
 interface Build {
@@ -109,6 +113,7 @@ function check(current: Resolved, build: Build): VerifyReport {
     margin: current.margin,
     ladder: current.verify.ladder,
     printPenalty: PRINT_PENALTY[current.dotStyle],
+    contrastRatio: contrastOf(current),
     decode,
   });
 }
@@ -155,7 +160,7 @@ function result(
   };
 
   return {
-    verified: report ? report.decodes : false,
+    verified: report ? passes(report) : false,
     repairs,
     report,
     options: current,

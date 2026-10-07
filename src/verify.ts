@@ -13,6 +13,13 @@ export interface Survival {
 
 export interface VerifyReport {
   decodes: boolean;
+  /**
+   * Contrast ratio between the dot colour and the background. Reported
+   * separately from decoding because a decoder thresholds a clean buffer
+   * adaptively and reads codes a phone in poor light would not.
+   */
+  contrastRatio: number;
+  sufficientContrast: boolean;
   pxPerModule: number;
   survives: Survival | null;
   weakest: DegradationAxis | null;
@@ -26,6 +33,7 @@ export interface VerifyInput {
   margin: number;
   ladder?: boolean;
   decode: Decoder;
+  contrastRatio?: number;
   /**
    * Multiplier for physical effects this harness cannot measure, such as ink
    * spread on paper. Supplied by the caller, never inferred here, so measured
@@ -58,6 +66,10 @@ const ROTATION_STEPS = [8, 15, 25, 35, 45];
 // samples. Shape penalties therefore arrive as printPenalty from the caller,
 // sourced from published print guidance, and are never inferred from these
 // measurements.
+// Below this the code is at real risk under imperfect lighting even though a
+// decoder still reads the clean render, so it counts as a failure of its own.
+export const MIN_CONTRAST_RATIO = 3;
+
 const BASE_PITCH_MM = 0.5;
 const REFERENCE_PX_PER_MODULE = 1.5;
 const REFERENCE_BLUR_FRACTION = 0.6;
@@ -67,25 +79,16 @@ export function verify(input: VerifyInput): VerifyReport {
   const extent = modules + margin * 2;
   const pxPerModule = raster.width / extent;
   const flat = flattenOnto(raster, "#FFFFFF");
+  const contrastRatio = input.contrastRatio ?? Infinity;
+  const sufficientContrast = contrastRatio >= MIN_CONTRAST_RATIO;
+  const base = { contrastRatio, sufficientContrast, pxPerModule };
 
   if (reads(flat, expected, decode) === false) {
-    return {
-      decodes: false,
-      pxPerModule,
-      survives: null,
-      weakest: null,
-      estimatedMinPrintSize: null,
-    };
+    return { ...base, decodes: false, survives: null, weakest: null, estimatedMinPrintSize: null };
   }
 
   if (input.ladder === false) {
-    return {
-      decodes: true,
-      pxPerModule,
-      survives: null,
-      weakest: null,
-      estimatedMinPrintSize: null,
-    };
+    return { ...base, decodes: true, survives: null, weakest: null, estimatedMinPrintSize: null };
   }
 
   const endure = <T>(steps: T[], pristine: T, apply: (step: T) => Raster) =>
@@ -108,8 +111,8 @@ export function verify(input: VerifyInput): VerifyReport {
   const cm = (extent * pitchMm) / 10;
 
   return {
+    ...base,
     decodes: true,
-    pxPerModule,
     survives,
     weakest: weakestAxis(survives, pxPerModule),
     estimatedMinPrintSize: { cm: round(cm, 1), in: round(cm / 2.54, 2) },

@@ -106,6 +106,42 @@ describe("repair", () => {
     expect(qr.repairs[0]!.field).toBe("dots.color");
   });
 
+  it("fails low contrast on its own terms, not only via the decoder", async () => {
+    const qr = await generate({
+      data: PAYLOAD,
+      dots: { color: "#9CA3AF" },
+      background: { color: "#D1D5DB" },
+      verify: { repair: false },
+    });
+
+    expect(qr.report!.contrastRatio).toBeLessThan(3);
+    expect(qr.report!.sufficientContrast).toBe(false);
+    expect(qr.verified).toBe(false);
+  });
+
+  it("repairs that contrast when repair is on", async () => {
+    const qr = await generate({
+      data: PAYLOAD,
+      dots: { color: "#9CA3AF" },
+      background: { color: "#D1D5DB" },
+    });
+
+    expect(qr.verified).toBe(true);
+    expect(qr.report!.contrastRatio).toBeGreaterThan(7);
+  });
+
+  it("respects a tasteful palette that clears the floor", async () => {
+    const qr = await generate({
+      data: PAYLOAD,
+      dots: { color: "#2563EB" },
+      background: { color: "#FFFFFF" },
+    });
+
+    expect(qr.verified).toBe(true);
+    expect(qr.repairs).toHaveLength(0);
+    expect(qr.options.dotColor).toBe("#2563EB");
+  });
+
   it("leaves a healthy code completely untouched", async () => {
     const qr = await generate({
       data: PAYLOAD,
