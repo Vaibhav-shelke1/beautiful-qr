@@ -24,3 +24,13 @@ export type {
   Fill,
   QRMatrix,
 } from "./types.js";
+export { verify } from "./verify.js";
+export type {
+  VerifyReport,
+  VerifyInput,
+  Survival,
+  Decoder,
+  DegradationAxis,
+} from "./verify.js";
+export { blur, downscale, reduceContrast, rotate } from "./degrade.js";
+export { encodePng } from "./png.js";
